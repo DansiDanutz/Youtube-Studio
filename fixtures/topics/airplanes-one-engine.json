@@ -1,0 +1,35 @@
+{
+  "topic": "Why airplanes can fly with one engine",
+  "audience": "curious general audience",
+  "desiredTakeaway": "Modern twin-engine airplanes are designed to keep flying safely after one engine fails.",
+  "stylePreset": "clean-technical-infographic",
+  "factPack": [
+    {
+      "id": "fact-1",
+      "claim": "Commercial twin-engine aircraft are certified to continue safe flight and landing after one engine fails.",
+      "source": "FAA safety certification summary"
+    },
+    {
+      "id": "fact-2",
+      "claim": "Pilots train for engine-out procedures in simulators before they fly passengers.",
+      "source": "Airline recurrent training guidance"
+    },
+    {
+      "id": "fact-3",
+      "claim": "A remaining engine provides thrust while the wings still generate lift, so the airplane does not suddenly fall.",
+      "source": "Basic aerodynamics reference"
+    },
+    {
+      "id": "fact-4",
+      "claim": "Route planning rules account for how far a plane can fly to an alternate airport on one engine.",
+      "source": "ETOPS overview"
+    }
+  ],
+  "sourceNotes": [
+    "Keep the explanation calm and confidence-building.",
+    "Avoid implying that engine failure is routine."
+  ],
+  "bannedClaims": [
+    "Any statement that all engine failures are harmless."
+  ]
+}

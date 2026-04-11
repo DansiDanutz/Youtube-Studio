@@ -1,0 +1,8 @@
+dist
+node_modules
+artifacts/
+.omx/
+memory/
+*.sqlite
+.env
+.env.*

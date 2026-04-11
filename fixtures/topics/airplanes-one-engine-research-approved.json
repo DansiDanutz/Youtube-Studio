@@ -1,0 +1,48 @@
+{
+  "topic": "Why airplanes can fly with one engine",
+  "audience": "curious general audience",
+  "desiredTakeaway": "Transport airplanes, pilot checks, and route planning are all designed around the possibility of one-engine flight.",
+  "stylePreset": "clean-technical-infographic",
+  "factPack": [
+    {
+      "id": "fact-1",
+      "claim": "Transport-category two-engine airplanes must satisfy one-engine-inoperative climb requirements during takeoff and approach under 14 CFR 25.121.",
+      "source": "14 CFR 25.121, Climb: One-engine-inoperative — https://www.ecfr.gov/current/title-14/chapter-I/subchapter-C/part-25/subpart-B/section-25.121"
+    },
+    {
+      "id": "fact-2",
+      "claim": "FAA multiengine guidance says loss of thrust from one engine affects both performance and control.",
+      "source": "FAA Airplane Flying Handbook, Chapter 13 — https://www.faa.gov/sites/faa.gov/files/regulations_policies/handbooks_manuals/aviation/airplane_handbook/14_afh_ch13.pdf"
+    },
+    {
+      "id": "fact-3",
+      "claim": "FAA ATP multiengine standards include engine shutdown or feathering tasks and a missed approach with one engine inoperative.",
+      "source": "FAA Airline Transport Pilot and Type Rating ACS (FAA-S-ACS-11A) — https://www.faa.gov/training_testing/testing/acs/atp_airplane_acs_11.pdf"
+    },
+    {
+      "id": "fact-4",
+      "claim": "ETOPS planning applies when a route contains a point farther than 60 minutes from an adequate airport at approved one-engine-inoperative cruise speed.",
+      "source": "FAA AC 120-42B, Extended Operations (ETOPS and Polar Operations) — https://www.faa.gov/documentLibrary/media/Advisory_Circular/120-42B.pdf"
+    }
+  ],
+  "sourceNotes": [
+    "Keep the explanation calm, precise, and confidence-building without turning the event into reassurance copy.",
+    "The hook should say the event is serious but not outside the design and checking envelope for transport-category airplanes.",
+    "Use fact-1 only for one-engine-inoperative climb certification requirements during takeoff and approach; do not turn it into a blanket safe-flight-and-landing promise.",
+    "Use fact-2 only for the point that engine loss affects both performance and control; do not add simulator chronology or claim the airplane flies normally.",
+    "Use fact-3 only for shutdown or feathering procedures and missed-approach checking with one engine inoperative; do not imply a universal airline training sequence.",
+    "Use fact-4 only when describing ETOPS applicability and adequate-airport planning at approved one-engine-inoperative cruise speed; do not generalize it to every twin-engine flight.",
+    "Avoid aerodynamic explanations unless they are sourced as separate facts.",
+    "The payoff should conclude that certification, pilot checking, and route planning are built around the possibility of one-engine flight, not that an engine failure is harmless."
+  ],
+  "bannedClaims": [
+    "Any statement that a single engine failure is harmless.",
+    "Any statement that the airplane keeps flying normally with no performance penalty.",
+    "Any statement that all twin-engine aircraft are covered by the same ETOPS planning rules in every context.",
+    "Any statement that commercial twin-engine aircraft are certified to keep flying and land safely after a single engine failure.",
+    "Any statement that pilots rehearse engine-out procedures in simulators before they fly passengers.",
+    "Any statement that the remaining engine and wing lift explanation proves the airplane does not suddenly fall.",
+    "Any statement that long flights are planned around alternate airports and one-engine performance from the start unless ETOPS applicability is stated explicitly.",
+    "Any wording equivalent to nothing to worry about, no big deal, miracle, or keeps flying like normal."
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "youtube-studio",
+  "version": "0.1.0",
+  "description": "An open-source AI production cockpit for creating, reviewing, and packaging YouTube videos and Shorts.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@9.15.4",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DansiDanutz/Youtube-Studio.git"
+  },
+  "homepage": "https://github.com/DansiDanutz/Youtube-Studio#readme",
+  "bugs": {
+    "url": "https://github.com/DansiDanutz/Youtube-Studio/issues"
+  },
+  "keywords": [
+    "youtube",
+    "youtube-shorts",
+    "ai",
+    "content-creation",
+    "video-generation",
+    "creator-tools",
+    "typescript",
+    "workflow"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm exec tsc -p tsconfig.json",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run build && node --test dist/**/*.test.js",
+    "env:check": "node scripts/validate-env.mjs",
+    "job:smoke": "pnpm run build && node dist/apps/orchestrator/src/cli.js smoke",
+    "job:submit": "pnpm run build && node dist/apps/orchestrator/src/cli.js smoke",
+    "job:approve": "pnpm run build && node dist/apps/orchestrator/src/cli.js approve",
+    "job:reject": "pnpm run build && node dist/apps/orchestrator/src/cli.js reject"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.3"
+  }
+}
