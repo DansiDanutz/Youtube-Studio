@@ -1,0 +1,28 @@
+# M3 — Video generation + composition.  Week 14.  Budget 6000¢.  Gate G3.
+id: M3
+title: Video gen (Wan 2.2 / LTX) + composition (FFmpeg/MoviePy) on Memo
+week_target: 14
+budget_cents: 6000
+gate: G3
+smoke_test: scripts/smoke_m3.py
+next_milestone: M4
+
+tasks:
+  - slug: video_gen
+    title: Per-scene video generation
+    agent: memo
+    module: src.video.video_gen
+    tier_routing:
+      free:       ltx-video
+      standard:   wan-2-2
+      pro:        wan-2-2
+      enterprise: hunyuan-video
+    budget_cents: 800   # per scene
+  - slug: compose
+    title: FFmpeg/MoviePy composition — merge scenes + transitions + overlays
+    agent: memo
+    module: src.video.composer
+  - slug: smoke
+    title: End-to-end smoke — final mp4 produced
+    agent: claude-code
+    module: scripts.smoke_m3

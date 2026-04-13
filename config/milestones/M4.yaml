@@ -1,0 +1,31 @@
+# M4 — Avatar + BGM.  Week 18.  Budget 6000¢.  Gate G4.
+id: M4
+title: Avatar (MuseTalk/LivePortrait) on Sienna + BGM (AudioCraft)
+week_target: 18
+budget_cents: 6000
+gate: G4
+smoke_test: scripts/smoke_m4.py
+next_milestone: M5
+
+tasks:
+  - slug: avatar_lipsync
+    title: Avatar lip-sync on Sienna
+    agent: sienna
+    module: src.video.avatar
+    tier_routing:
+      free:       wav2lip
+      standard:   sadtalker
+      pro:        musetalk
+      enterprise: liveportrait
+  - slug: bgm
+    title: Background music generation (AudioCraft/MusicGen)
+    agent: dexter
+    module: src.audio.bgm_gen
+  - slug: audio_mix
+    title: Mix voice + BGM + SFX into final audio track
+    agent: memo
+    module: src.audio.mixer
+  - slug: smoke
+    title: End-to-end smoke — avatar lip-synced final video
+    agent: claude-code
+    module: scripts.smoke_m4

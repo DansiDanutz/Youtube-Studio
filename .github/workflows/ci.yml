@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+
+jobs:
+  lint-test:
+    name: pytest + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ruff
+        run: ruff check src tests || true   # advisory, don't block M1
+
+      - name: Mypy
+        run: mypy src --ignore-missing-imports || true   # advisory, don't block M1
+
+      - name: Pytest
+        env:
+          YUTE_LOCAL_STORAGE: /tmp/yute-assets-ci
+        run: |
+          mkdir -p "$YUTE_LOCAL_STORAGE"
+          pytest -v
+
+  schema-check:
+    name: validate milestones
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install pyyaml pydantic
+      - run: python -m scripts.validate_milestones

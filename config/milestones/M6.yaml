@@ -1,0 +1,38 @@
+# M6 — Autonomous loop.  Week 26.  Budget 8000¢.  No hard gate.
+id: M6
+title: Autonomous loop — Growth/Discovery/Hermes + tier routing + budget guard
+week_target: 26
+budget_cents: 8000
+gate: null
+smoke_test: scripts/smoke_m6.py
+next_milestone: null
+
+tasks:
+  - slug: growth_loop
+    title: Growth agent proposes new run ideas on a weekly cadence
+    agent: growth
+    module: src.autonomous.growth
+    schedule: weekly
+  - slug: discovery_loop
+    title: Discovery agent feeds trending topics into the prompt enhancer
+    agent: discovery
+    module: src.autonomous.discovery
+    schedule: daily
+  - slug: hermes_digest
+    title: Daily digest to Telegram (approvals needed, budget burn, health)
+    agent: hermes
+    module: src.autonomous.hermes_digest
+    schedule: daily
+  - slug: budget_guard
+    title: Kill switch — pause all runs if monthly_budget exceeded
+    agent: gsd
+    module: src.orchestrator.budget_guard
+    schedule: 1min
+  - slug: tier_router
+    title: Route model selection by tier on every stage
+    agent: gsd
+    module: src.orchestrator.tier_router
+  - slug: smoke
+    title: Smoke — fully autonomous run from Growth idea to published video
+    agent: claude-code
+    module: scripts.smoke_m6

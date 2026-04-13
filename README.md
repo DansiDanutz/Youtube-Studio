@@ -1,202 +1,62 @@
-# YouTube Studio
+# YuteStudio — AI YouTube Automation Platform
 
-An open-source AI production cockpit for creating, reviewing, and packaging high-quality faceless YouTube videos and Shorts.
+Full spec lives in `docs/SPEC.md`. This README is the implementation entry point.
 
-YouTube Studio is designed to feel like a real content operating system:
+## Architecture in one paragraph
 
-- powerful enough to orchestrate a multi-stage generation pipeline
-- simple enough for a solo operator to use every day
-- structured enough for teams to collaborate without chaos
+YuteStudio is a Paperclip-orchestrated pipeline: **GSD** reads `config/milestones/M{N}.yaml`, writes tasks into Supabase `yute_tasks`, and dispatches them to the agent fleet (Claude Code, Autoresearch, Discovery, Dexter, Nano, Memo, Sienna, Growth, Stripe, N8N, Hermes, Doctor, KimiClaw, Obsidian, Vercel, Supabase, GitHub). Every task is budget-capped, schema-validated on output, and retried twice before parking. Runs are JSON manifests in `yute_runs` — every agent is a pure function over the manifest, so the pipeline is resumable and parallelizable by construction.
 
-This project is not a clone of YouTube's official Studio. It is a creator-side production system focused on turning a structured brief into a reviewable, publish-ready content package.
+## Quick start
 
-## Why This Project Is Different
+```bash
+# 1. Install deps
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 
-Most AI video tools stop at one generated artifact.
+# 2. Fill secrets
+cp .env.example .env   # then edit
 
-YouTube Studio is trying to solve the whole operator workflow:
+# 3. Apply DB migration
+supabase db push --file supabase/migrations/0001_yute_delta.sql
 
-- brief
-- grounding
-- script
-- voice
-- captions
-- visuals
-- packaging
-- review
-- diagnostics
+# 4. Seed milestones
+python -m src.orchestrator.seed_milestones
 
-The goal is not just “generate a video.”
+# 5. Start the roadmap loop (dry run first)
+python -m src.orchestrator.roadmap --dry-run
+python -m src.orchestrator.roadmap
 
-The goal is to make AI-assisted YouTube production feel reliable, inspectable, reusable, and genuinely pleasant to operate.
+# 6. Serve the API
+uvicorn src.api.main:app --reload
+```
 
-## Why This Exists
-
-Most AI video tools are good at one isolated step:
-
-- script generation
-- voice generation
-- captioning
-- image generation
-- editing
-
-But creators still end up stitching everything together manually.
-
-YouTube Studio aims to solve the workflow, not just the single tool problem.
-
-## What It Will Do
-
-The product is being built in phases.
-
-### Current focus
-
-The first implementation targets one strong lane:
-
-- faceless educational 9:16 YouTube Shorts
-- structured brief intake
-- grounded script generation
-- review checkpoints instead of manual editing
-- stage-by-stage artifacts and telemetry
-
-### Planned capabilities
-
-- idea inbox and topic queue
-- fact-pack and claim validation
-- script and hook variants
-- voice presets and pronunciation controls
-- shot planning and asset generation
-- timeline-free review workflow
-- title, description, and thumbnail packaging
-- searchable run history and reusable content patterns
-
-## Product Principles
-
-- Powerful by default, not overwhelming by default
-- Review-first instead of timeline-edit-first
-- Reuse over rework
-- Clear operator feedback at every stage
-- Modular architecture with disciplined scope
-
-## Repository Structure
+## Layout
 
 ```text
-apps/
-  orchestrator/        CLI and future control-plane entrypoints
-packages/
-  domain/              core types, entities, and contracts
-  pipeline/            generation and stage logic
-  telemetry/           run ledger and metrics
-docs/
-  specification.md     product specification
-  architecture.md      system architecture
-  worker-topology.md   delivery topology
-operations/
-  *.md                 operator runbooks
-fixtures/
-  topics/              deterministic smoke fixtures
-plans/
-  *.md                 implementation planning artifacts
-scripts/
-  *.mjs                utility scripts
+repo/
+├── config/milestones/M{1..6}.yaml   # Declarative milestones — edit these, not the DB
+├── src/
+│   ├── orchestrator/                # GSD's brain: roadmap loop, dispatcher, budget guard, approvals, doctor
+│   ├── manifest/                    # Pydantic manifest schema
+│   ├── prompt_engine/               # M1.2 — idea → enhanced prompt
+│   ├── research/                    # M1.3–4 — SerpAPI + Playwright + ranker
+│   ├── script/                      # M1.5 — scene-by-scene generator
+│   └── api/                         # M1.6 — FastAPI entry point
+├── supabase/migrations/             # DDL, idempotent
+├── scripts/                         # Ops scripts (e.g. register scheduled tasks)
+└── tests/                           # Smoke + unit
 ```
 
-## Getting Started
+## Deployment readiness
 
-### Prerequisites
+See `docs/DEPLOYMENT_READINESS.md` for the real-world blockers that still sit outside local smoke coverage:
 
-- Node.js 22+
-- pnpm 9+
+- GitHub push + CI
+- Telegram approval delivery
+- model endpoint wiring (`KOKORO_TTS_URL`, `FLUX_SCHNELL_URL`, etc.)
+- FastAPI deployment
+- YouTube OAuth for M5
 
-### Install
+## What the 5 human gates look like in practice
 
-```bash
-pnpm install
-```
-
-### Validate the environment
-
-```bash
-pnpm run env:check
-```
-
-### Typecheck and test
-
-```bash
-pnpm run typecheck
-pnpm run test
-```
-
-### Run the deterministic smoke flow
-
-```bash
-pnpm run job:smoke
-```
-
-## Project Status
-
-This project is in an early but actively structured phase.
-
-What already exists:
-
-- public product spec
-- architecture and worker topology
-- initial workspace structure
-- smoke-flow scaffolding
-- run ledger and review artifact flow
-
-What is still under active construction:
-
-- full app shell
-- review UI
-- voice, captions, visuals, and render stages
-- packaging and publish workflow
-
-## Documentation
-
-- [Docs Index](docs/README.md)
-- [Product Specification](docs/specification.md)
-- [Architecture](docs/architecture.md)
-- [Worker Topology](docs/worker-topology.md)
-- [Provider Smoke Runbook](operations/2026-04-11-provider-smoke-runbook.md)
-- [Implementation Backlog](plans/2026-04-11-first-implementation-backlog.md)
-- [Roadmap](ROADMAP.md)
-
-## Contributing
-
-We want this repo to become a strong open-source project, not a messy demo.
-
-Before opening a PR:
-
-- read [CONTRIBUTING.md](CONTRIBUTING.md)
-- keep changes scoped and reviewable
-- avoid widening scope without updating the spec
-- prefer improving the operator experience, reliability, and clarity
-
-## Open Source Goals
-
-We want YouTube Studio to become:
-
-- a serious open-source creator tooling project
-- a reliable AI video workflow foundation
-- a place where strong UX and strong systems design meet
-
-If you care about AI-native content tooling, operator experience, or production orchestration, you are in the right repo.
-
-## Contributing Quick Start
-
-```bash
-pnpm install
-pnpm run env:check
-pnpm run typecheck
-pnpm run test
-```
-
-Then read:
-
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [ROADMAP.md](ROADMAP.md)
-- [SECURITY.md](SECURITY.md)
-
-## License
-
-[MIT](LICENSE)
+See `docs/ROADMAP.md` — ported from `../09-Autonomous-Roadmap.md`. Dan's total involvement is < 6 hours across 26 weeks.

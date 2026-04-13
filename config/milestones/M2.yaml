@@ -1,0 +1,38 @@
+# M2 — TTS + image generation.  Week 8.  Budget 4000¢.  Gate G2.
+id: M2
+title: TTS (Chatterbox/Kokoro/F5) + image gen (FLUX) on Nano/Dexter
+week_target: 8
+budget_cents: 4000
+gate: G2
+smoke_test: scripts/smoke_m2.py
+next_milestone: M3
+
+tasks:
+  - slug: tts_service
+    title: TTS service on Nano (Chatterbox primary, Kokoro/F5 fallback)
+    agent: nano
+    module: src.video.tts_engine
+    tier_routing:
+      free:       kokoro
+      standard:   chatterbox
+      pro:        chatterbox
+      enterprise: f5
+    budget_cents: 200   # per scene
+  - slug: image_gen
+    title: Image gen on Dexter (FLUX.2 pro / FLUX.1-schnell free)
+    agent: dexter
+    module: src.video.image_gen
+    tier_routing:
+      free:       flux-schnell
+      standard:   flux-schnell
+      pro:        flux-2
+      enterprise: flux-2
+    budget_cents: 300   # per scene
+  - slug: storage_wire
+    title: Wire S3/MinIO storage for assets (output_url in video_renders)
+    agent: claude-code
+    module: src.infra.storage
+  - slug: smoke
+    title: End-to-end smoke — render 2-scene video to wav+png assets
+    agent: claude-code
+    module: scripts.smoke_m2

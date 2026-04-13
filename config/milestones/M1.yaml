@@ -1,0 +1,93 @@
+# M1 — Scaffold + prompt enhancer + research + script generator
+# Target: week 4.  Budget: 2000¢ ($20).  Gate: G1.
+# Acceptance: repo live, CI green, migration applied, smoke test passes, G1 approval recorded.
+
+id: M1
+title: Scaffold + prompt enhancer + research + script
+week_target: 4
+budget_cents: 2000
+gate: G1
+smoke_test: scripts/smoke_m1.py
+next_milestone: M2
+
+tasks:
+  - slug: scaffold
+    title: Scaffold repo + CI + CODEOWNERS + Supabase delta
+    agent: claude-code
+    status: done
+    outputs:
+      - /README.md
+      - /requirements.txt
+      - /.github/CODEOWNERS
+      - /.github/workflows/ci.yml
+      - /supabase/migrations/0001_yute_delta.sql
+
+  - slug: prompt_enhancer
+    title: Prompt enhancer + Q&A generator
+    agent: kimiclaw
+    depends_on: [scaffold]
+    module: src.prompt_engine.enhancer
+    inputs:
+      - video_projects.original_prompt
+    outputs:
+      - video_projects.enhanced_prompt
+      - video_projects.questions
+    budget_cents: 100
+    max_retries: 2
+
+  - slug: research_scrape
+    title: Research scraper (SerpAPI + youtube-transcript + playwright)
+    agent: autoresearch
+    depends_on: [prompt_enhancer]
+    module: src.research.scraper
+    inputs:
+      - video_projects.enhanced_prompt
+    outputs:
+      - video_projects.metadata.research
+    budget_cents: 200
+    max_retries: 2
+
+  - slug: research_rank
+    title: Research ranker — score + dedupe + top-k
+    agent: discovery
+    depends_on: [research_scrape]
+    module: src.research.ranker
+    inputs:
+      - video_projects.metadata.research
+    outputs:
+      - video_projects.metadata.research  # overwritten with ranked subset
+    budget_cents: 50
+
+  - slug: script_gen
+    title: Script generator → scenes[]
+    agent: kimiclaw
+    depends_on: [research_rank]
+    module: src.script.generator
+    inputs:
+      - video_projects.enhanced_prompt
+      - video_projects.metadata.research
+    outputs:
+      - video_projects.scenes
+      - video_scenes rows
+    budget_cents: 300
+    max_retries: 2
+
+  - slug: api
+    title: FastAPI orchestrator endpoint
+    agent: claude-code
+    depends_on: [script_gen]
+    module: src.api.main
+    outputs:
+      - POST /runs
+      - GET  /runs/{project_id}
+      - POST /runs/{project_id}/advance
+      - POST /approvals/{approval_id}
+
+  - slug: smoke
+    title: Smoke test + open G1 approval
+    agent: claude-code
+    depends_on: [api]
+    module: scripts.smoke_m1
+    outputs:
+      - tests/test_smoke_m1.py passes
+      - yute_approvals row with gate=G1, decision=pending

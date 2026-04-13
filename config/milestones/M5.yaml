@@ -1,0 +1,30 @@
+# M5 — Publish to YouTube.  Week 22.  Budget 4000¢.  Gate G5.
+id: M5
+title: Publish to YouTube + thumbnail + SEO pack
+week_target: 22
+budget_cents: 4000
+gate: G5
+smoke_test: scripts/smoke_m5.py
+next_milestone: M6
+
+tasks:
+  - slug: thumbnail
+    title: Thumbnail generation (FLUX) + A/B variants
+    agent: dexter
+    module: src.publish.thumbnail
+  - slug: seo_pack
+    title: SEO pack — title, description, tags, chapters
+    agent: kimiclaw
+    module: src.publish.seo
+  - slug: youtube_upload
+    title: YouTube upload (unlisted first) via YouTube Data API v3
+    agent: claude-code
+    module: src.publish.youtube_uploader
+    requires_credentials:
+      - YT_CLIENT_ID
+      - YT_CLIENT_SECRET
+      - YT_REFRESH_TOKEN
+  - slug: smoke
+    title: End-to-end smoke — unlisted video live on YouTube
+    agent: claude-code
+    module: scripts.smoke_m5

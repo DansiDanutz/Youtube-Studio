@@ -1,0 +1,31 @@
+# YuteStudio code ownership — keyed to Paperclip agent names.
+# When an agent opens a PR, reviewers are auto-assigned from here.
+
+# Core orchestrator — GSD owns, Claude Code implements
+/src/orchestrator/     @gsd @claude-code
+/config/milestones/    @gsd
+
+# M1 — text pipeline
+/src/prompt_engine/    @claude-code @kimiclaw
+/src/research/         @autoresearch @discovery
+/src/script/           @claude-code @kimiclaw
+/src/api/              @claude-code
+
+# M2+ — render
+/src/video/tts_engine.py   @nano
+/src/video/image_gen.py    @dexter
+/src/video/video_gen.py    @dexter
+/src/video/avatar.py       @sienna
+/src/video/composer.py     @memo
+/src/workers/              @memo
+/src/library/              @memo @vercel
+
+# M3+ — publishing
+/src/publishing/thumbnail.py      @memo
+/src/publishing/seo.py            @growth
+/src/publishing/youtube_upload.py @n8n
+
+# Infra
+/supabase/             @supabase-agent
+/.github/              @github-agent
+/docs/                 @obsidian @gsd
