@@ -27,10 +27,13 @@ import os
 from dataclasses import dataclass
 from typing import Callable
 
+from src.env import load_repo_env
 from src.infra import storage
 from src.manifest import RunManifest, Scene, Tier
 
 log = logging.getLogger(__name__)
+
+load_repo_env()
 
 
 TIER_TO_MODEL: dict[Tier, str] = {

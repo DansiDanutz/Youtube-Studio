@@ -4,13 +4,13 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 from functools import lru_cache
-from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
 from supabase import Client, create_client
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
+from src.env import load_repo_env
+
+load_repo_env()
 
 
 @lru_cache(maxsize=1)

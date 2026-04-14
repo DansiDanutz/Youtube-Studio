@@ -14,13 +14,13 @@ from pathlib import Path
 from pprint import pformat
 
 import httpx
-from dotenv import load_dotenv
 
+from src.env import load_repo_env
 from .db import T_APPROVALS, get_client
 
 log = logging.getLogger(__name__)
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
+load_repo_env()
 
 TG_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID") or os.environ.get("TELEGRAM_DAN_CHAT_ID", "")
