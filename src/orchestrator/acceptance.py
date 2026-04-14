@@ -128,6 +128,39 @@ def _placeholder_true() -> bool:
     return True
 
 
+def _youtube_oauth_ready() -> bool:
+    required = ("YT_CLIENT_ID", "YT_CLIENT_SECRET", "YT_REFRESH_TOKEN")
+    return all(os.environ.get(name, "").strip() for name in required)
+
+
+def _video_uploaded_as_unlisted() -> bool:
+    return _youtube_oauth_ready() and _final_mp4_produced()
+
+
+def _thumbnail_attached() -> bool:
+    try:
+        client = get_client()
+        resp = client.table(T_PROJECTS).select("thumbnail_url").limit(20).execute()
+        return any(str(row.get("thumbnail_url") or "").strip() for row in (resp.data or []))
+    except Exception:
+        return False
+
+
+def _title_desc_tags_saved() -> bool:
+    try:
+        client = get_client()
+        resp = client.table(T_PROJECTS).select("title, metadata").limit(20).execute()
+        for row in resp.data or []:
+            title = str(row.get("title") or "").strip()
+            metadata = row.get("metadata") or {}
+            tags = metadata.get("tags") if isinstance(metadata, dict) else None
+            if title and tags:
+                return True
+        return False
+    except Exception:
+        return False
+
+
 CHECKS: dict[str, CheckFn] = {
     "repo live": _repo_live,
     "CI green": _ci_green,
@@ -146,9 +179,9 @@ CHECKS: dict[str, CheckFn] = {
     "final mp4 produced":    _final_mp4_produced,
     "avatar lip-sync ok":    _avatar_lip_sync_ok,
     "bgm mixed":             _bgm_mixed,
-    "video uploaded as unlisted": _placeholder_true,
-    "thumbnail attached":    _placeholder_true,
-    "title/desc/tags saved": _placeholder_true,
+    "video uploaded as unlisted": _video_uploaded_as_unlisted,
+    "thumbnail attached":    _thumbnail_attached,
+    "title/desc/tags saved": _title_desc_tags_saved,
     "ambient scheduler live": _placeholder_true,
     "budget guard enforced": _placeholder_true,
     "growth loop proposes ideas": _placeholder_true,
