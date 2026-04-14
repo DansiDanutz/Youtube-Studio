@@ -18,7 +18,7 @@ from .db import T_APPROVALS, get_client
 log = logging.getLogger(__name__)
 
 TG_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID") or os.environ.get("TELEGRAM_DAN_CHAT_ID", "")
 TG_API = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
 
 
@@ -64,11 +64,12 @@ def _push_telegram(gate: str, approval_id: int, reason: str, evidence: dict) -> 
         f"Reply: `/approve {approval_id}` or `/reject {approval_id} <reason>`"
     )
     try:
-        httpx.post(
+        resp = httpx.post(
             TG_API,
             json={"chat_id": TG_CHAT_ID, "text": text, "parse_mode": "Markdown"},
             timeout=10,
         )
+        resp.raise_for_status()
     except Exception as exc:  # noqa: BLE001
         log.warning("telegram push failed: %s", exc)
 
