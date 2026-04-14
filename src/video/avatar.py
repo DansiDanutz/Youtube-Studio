@@ -22,7 +22,6 @@ Scenes without an avatar_id are untouched.
 """
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 from dataclasses import dataclass
@@ -209,7 +208,7 @@ def _upload_and_pack(manifest: RunManifest, scene: Scene, model: str, mp4: bytes
 
 def _persist_render_row(manifest: RunManifest, scene: Scene, result: AvatarResult) -> None:
     try:
-        from src.orchestrator.db import T_RENDERS, get_client
+        from src.orchestrator.db import get_client, insert_render_record
     except Exception:
         return
     try:
@@ -217,18 +216,16 @@ def _persist_render_row(manifest: RunManifest, scene: Scene, result: AvatarResul
     except Exception:
         return
     try:
-        client.table(T_RENDERS).insert(
-            {
-                "project_id": str(manifest.project_id),
-                "scene_number": scene.scene_number,
-                "asset_type": "avatar",
-                "provider": result.model,
-                "output_url": result.video_url,
-                "bytes": result.bytes_written,
-                "status": "done",
-                "sha256": hashlib.sha256(result.video_url.encode()).hexdigest(),
-            }
-        ).execute()
+        insert_render_record(
+            client,
+            project_id=str(manifest.project_id),
+            scene_number=scene.scene_number,
+            render_type="avatar",
+            provider=result.model,
+            output_url=result.video_url,
+            bytes_written=result.bytes_written,
+            description="Avatar lip-sync output",
+        )
     except Exception as exc:  # noqa: BLE001
         log.warning("avatar: render-row insert failed (%s)", exc)
 

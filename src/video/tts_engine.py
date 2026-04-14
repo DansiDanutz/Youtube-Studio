@@ -14,7 +14,6 @@ video_renders.output_url and the scene is decorated with `audio_url`.
 """
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 import struct
@@ -240,7 +239,7 @@ def _attach_audio_to_scene(scene: Scene, result: TTSResult) -> None:
 
 def _persist_render_row(manifest: RunManifest, scene: Scene, result: TTSResult) -> None:
     try:
-        from src.orchestrator.db import T_RENDERS, get_client
+        from src.orchestrator.db import get_client, insert_render_record
     except Exception as exc:  # noqa: BLE001
         log.debug("TTS: db module unavailable (%s) — skipping persistence", exc)
         return
@@ -251,19 +250,17 @@ def _persist_render_row(manifest: RunManifest, scene: Scene, result: TTSResult) 
         log.debug("TTS: no Supabase client (%s) — skipping persistence", exc)
         return
     try:
-        client.table(T_RENDERS).insert(
-            {
-                "project_id": str(manifest.project_id),
-                "scene_number": scene.scene_number,
-                "asset_type": "audio",
-                "provider": result.provider,
-                "output_url": result.audio_url,
-                "duration_seconds": result.duration_seconds,
-                "bytes": result.bytes_written,
-                "status": "done",
-                "sha256": hashlib.sha256(result.audio_url.encode()).hexdigest(),
-            }
-        ).execute()
+        insert_render_record(
+            client,
+            project_id=str(manifest.project_id),
+            scene_number=scene.scene_number,
+            render_type="audio",
+            provider=result.provider,
+            output_url=result.audio_url,
+            bytes_written=result.bytes_written,
+            duration_seconds=result.duration_seconds,
+            description="Per-scene narration WAV",
+        )
     except Exception as exc:  # noqa: BLE001
         # video_renders may have a different column set on this env — don't
         # block the smoke path on schema drift.

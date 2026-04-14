@@ -188,7 +188,7 @@ def _upload_and_pack(manifest: RunManifest, scene: Scene, model: str, png: bytes
 
 def _persist_render_row(manifest: RunManifest, scene: Scene, result: ImageResult) -> None:
     try:
-        from src.orchestrator.db import T_RENDERS, T_SCENES, get_client
+        from src.orchestrator.db import T_SCENES, get_client, insert_render_record
     except Exception as exc:  # noqa: BLE001
         log.debug("image_gen: db module unavailable (%s)", exc)
         return
@@ -207,20 +207,17 @@ def _persist_render_row(manifest: RunManifest, scene: Scene, result: ImageResult
     except Exception as exc:  # noqa: BLE001
         log.warning("image_gen: scene update failed (%s)", exc)
     try:
-        client.table(T_RENDERS).insert(
-            {
-                "project_id": str(manifest.project_id),
-                "scene_number": scene.scene_number,
-                "asset_type": "image",
-                "provider": result.model,
-                "output_url": result.image_url,
-                "bytes": result.bytes_written,
-                "width": result.width,
-                "height": result.height,
-                "status": "done",
-                "sha256": hashlib.sha256(result.image_url.encode()).hexdigest(),
-            }
-        ).execute()
+        insert_render_record(
+            client,
+            project_id=str(manifest.project_id),
+            scene_number=scene.scene_number,
+            render_type="image",
+            provider=result.model,
+            output_url=result.image_url,
+            bytes_written=result.bytes_written,
+            description=f"Scene image {result.width}x{result.height}",
+            input_data={"width": result.width, "height": result.height},
+        )
     except Exception as exc:  # noqa: BLE001
         log.warning("image_gen: render-row insert failed (%s) — continuing", exc)
 

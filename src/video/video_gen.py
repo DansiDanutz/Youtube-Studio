@@ -17,7 +17,6 @@ FFmpeg, so the M3 smoke pipe still produces a real video asset.
 """
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 import shutil
@@ -284,7 +283,7 @@ def _empty_mp4_box() -> bytes:
 
 def _persist_render_row(manifest: RunManifest, scene: Scene, result: VideoResult) -> None:
     try:
-        from src.orchestrator.db import T_RENDERS, T_SCENES, get_client
+        from src.orchestrator.db import T_SCENES, get_client, insert_render_record
     except Exception:
         return
     try:
@@ -300,19 +299,17 @@ def _persist_render_row(manifest: RunManifest, scene: Scene, result: VideoResult
     except Exception as exc:  # noqa: BLE001
         log.warning("video_gen: scene update failed (%s)", exc)
     try:
-        client.table(T_RENDERS).insert(
-            {
-                "project_id": str(manifest.project_id),
-                "scene_number": scene.scene_number,
-                "asset_type": "video",
-                "provider": result.model,
-                "output_url": result.video_url,
-                "bytes": result.bytes_written,
-                "duration_seconds": result.duration_seconds,
-                "status": "done",
-                "sha256": hashlib.sha256(result.video_url.encode()).hexdigest(),
-            }
-        ).execute()
+        insert_render_record(
+            client,
+            project_id=str(manifest.project_id),
+            scene_number=scene.scene_number,
+            render_type="video",
+            provider=result.model,
+            output_url=result.video_url,
+            bytes_written=result.bytes_written,
+            duration_seconds=result.duration_seconds,
+            description="Per-scene MP4 render",
+        )
     except Exception as exc:  # noqa: BLE001
         log.warning("video_gen: render-row insert failed (%s)", exc)
 

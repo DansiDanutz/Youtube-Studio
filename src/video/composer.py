@@ -18,7 +18,6 @@ dispatcher still advances to REVIEW during offline smoke tests.
 """
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 import shutil
@@ -242,7 +241,7 @@ def _fallback_single_scene(manifest: RunManifest, video_url: str) -> None:
 
 def _persist_final_row(manifest: RunManifest, result: ComposeResult) -> None:
     try:
-        from src.orchestrator.db import T_PROJECTS, T_RENDERS, get_client
+        from src.orchestrator.db import T_PROJECTS, get_client, insert_render_record
     except Exception:
         return
     try:
@@ -256,19 +255,18 @@ def _persist_final_row(manifest: RunManifest, result: ComposeResult) -> None:
     except Exception as exc:  # noqa: BLE001
         log.warning("composer: project update failed (%s)", exc)
     try:
-        client.table(T_RENDERS).insert(
-            {
-                "project_id": str(manifest.project_id),
-                "scene_number": 0,
-                "asset_type": "final",
-                "provider": f"composer-{result.mode}",
-                "output_url": result.video_url,
-                "bytes": result.bytes_written,
-                "duration_seconds": result.duration_seconds,
-                "status": "done",
-                "sha256": hashlib.sha256(result.video_url.encode()).hexdigest(),
-            }
-        ).execute()
+        insert_render_record(
+            client,
+            project_id=str(manifest.project_id),
+            scene_number=0,
+            render_type="final",
+            provider=f"composer-{result.mode}",
+            output_url=result.video_url,
+            bytes_written=result.bytes_written,
+            duration_seconds=result.duration_seconds,
+            description="Final composed MP4",
+            final_video_url=result.video_url,
+        )
     except Exception as exc:  # noqa: BLE001
         log.warning("composer: final render-row insert failed (%s)", exc)
 

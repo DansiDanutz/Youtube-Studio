@@ -18,7 +18,6 @@ If ffmpeg or inputs are missing we fall back to the concatenated voice track
 """
 from __future__ import annotations
 
-import hashlib
 import logging
 import shutil
 import subprocess
@@ -147,7 +146,7 @@ def _mix(ffmpeg: str, voice: Path, bgm: Path, out_path: Path) -> None:
 
 def _persist_render_row(manifest: RunManifest, result: MixResult) -> None:
     try:
-        from src.orchestrator.db import T_RENDERS, get_client
+        from src.orchestrator.db import get_client, insert_render_record
     except Exception:
         return
     try:
@@ -155,19 +154,17 @@ def _persist_render_row(manifest: RunManifest, result: MixResult) -> None:
     except Exception:
         return
     try:
-        client.table(T_RENDERS).insert(
-            {
-                "project_id": str(manifest.project_id),
-                "scene_number": 0,
-                "asset_type": "mixed_audio",
-                "provider": f"mixer-{result.mode}",
-                "output_url": result.url,
-                "bytes": result.bytes_written,
-                "duration_seconds": result.duration_seconds,
-                "status": "done",
-                "sha256": hashlib.sha256(result.url.encode()).hexdigest(),
-            }
-        ).execute()
+        insert_render_record(
+            client,
+            project_id=str(manifest.project_id),
+            scene_number=0,
+            render_type="mixed_audio",
+            provider=f"mixer-{result.mode}",
+            output_url=result.url,
+            bytes_written=result.bytes_written,
+            duration_seconds=result.duration_seconds,
+            description="Mixed voice and BGM WAV",
+        )
     except Exception as exc:  # noqa: BLE001
         log.warning("mixer: render-row insert failed (%s)", exc)
 

@@ -71,6 +71,11 @@ def tick() -> dict:
 
     results = evaluate_milestone(ms["id"])
     all_pass = bool(results) and all(results.values())
+    gate_check_name = f"{ms['gate']} approval recorded" if ms.get("gate") else None
+    non_gate_results = {
+        name: passed for name, passed in results.items() if name != gate_check_name
+    }
+    gate_ready = bool(non_gate_results) and all(non_gate_results.values())
 
     summary: dict = {
         "milestone": ms["id"],
@@ -88,7 +93,7 @@ def tick() -> dict:
         summary["action"] = "started"
 
     # If all acceptance passes and this milestone has a gate, check gate state
-    if all_pass and ms.get("gate"):
+    if ms.get("gate") and gate_ready:
         approved = latest_decision_for(ms["id"], ms["gate"])
         if approved and approved["decision"] == "approved":
             # Mark done, activate next
