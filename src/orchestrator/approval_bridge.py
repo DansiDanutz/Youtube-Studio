@@ -10,12 +10,17 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
+from pprint import pformat
 
 import httpx
+from dotenv import load_dotenv
 
 from .db import T_APPROVALS, get_client
 
 log = logging.getLogger(__name__)
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
 
 TG_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID") or os.environ.get("TELEGRAM_DAN_CHAT_ID", "")
@@ -56,17 +61,18 @@ def _push_telegram(gate: str, approval_id: int, reason: str, evidence: dict) -> 
     if not TG_BOT_TOKEN or not TG_CHAT_ID:
         log.info("telegram not configured, skipping push for approval %d", approval_id)
         return
+    evidence_text = pformat(evidence, width=80, compact=True)
     text = (
-        f"🔔 *YuteStudio gate {gate}*\n"
-        f"approval_id: `{approval_id}`\n"
+        f"YuteStudio gate {gate}\n"
+        f"approval_id: {approval_id}\n"
         f"reason: {reason or '(none)'}\n"
-        f"evidence: ```{evidence}```\n\n"
-        f"Reply: `/approve {approval_id}` or `/reject {approval_id} <reason>`"
+        f"evidence: {evidence_text}\n\n"
+        f"Reply: /approve {approval_id} or /reject {approval_id} <reason>"
     )
     try:
         resp = httpx.post(
             TG_API,
-            json={"chat_id": TG_CHAT_ID, "text": text, "parse_mode": "Markdown"},
+            json={"chat_id": TG_CHAT_ID, "text": text},
             timeout=10,
         )
         resp.raise_for_status()
