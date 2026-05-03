@@ -35,3 +35,16 @@ export {
   type VideoPipelineLiveExecutionStatus,
   type VideoPipelineMeasuredQa
 } from "./live-execution.js";
+export {
+  buildMacStudioToolAuditFromVerifiedEvidence,
+  createProfessionalRegenerationPlan,
+  writeProfessionalRegenerationPlanArtifacts,
+  type ProfessionalGapItem,
+  type ProfessionalRegenerationPlan,
+  type ProfessionalRegenerationPlanResult,
+  type ProfessionalRegenerationStep,
+  type ProfessionalRequirementStatus,
+  type ProfessionalToolAuditItem,
+  type ProfessionalToolKey,
+  type ProfessionalToolStatus
+} from "./professional-regeneration-plan.js";
