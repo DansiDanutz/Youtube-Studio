@@ -3,7 +3,7 @@
   "public": true,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/apps/dashboard/index.html" }
+    { "source": "/", "destination": "/apps/dashboard" }
   ],
   "functions": {
     "api/video-pipeline.js": {

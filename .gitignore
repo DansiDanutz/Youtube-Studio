@@ -12,3 +12,4 @@ memory/
 .env.*
 # macOS/iCloud duplicate working copies
 * 2.md
+.vercel
