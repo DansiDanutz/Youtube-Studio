@@ -13,7 +13,17 @@ import { createControlPlane } from "./control-plane.js";
 import { loadLocalEnv } from "./env.js";
 import { formatRoadmapStatus } from "./roadmap.js";
 import { startOrchestratorServer } from "./server.js";
-import { createVideoPipelineManifest, writeVideoPipelineArtifacts, type VideoPipelineCostMode } from "../../../packages/pipeline/src/index.js";
+import {
+  createProfessionalReadinessPlan,
+  createStrictVideoPipelineManifest,
+  createSystemLeveragePlan,
+  createVideoPipelineManifest,
+  evaluateProfessionalReadiness,
+  writeProfessionalReadinessArtifacts,
+  writeStrictVideoPipelineArtifacts,
+  writeVideoPipelineArtifacts,
+  type VideoPipelineCostMode
+} from "../../../packages/pipeline/src/index.js";
 
 const rootDir = resolve(process.cwd());
 const artifactsRoot = join(rootDir, "artifacts");
@@ -48,6 +58,9 @@ async function main(): Promise<void> {
       return;
     case "video-pipeline":
       await runVideoPipeline(rest);
+      return;
+    case "video-professional-readiness":
+      await runVideoProfessionalReadiness(rest);
       return;
     default:
       throw new Error(`Unknown command: ${command ?? "(missing)"}`);
@@ -156,6 +169,37 @@ async function runVideoPipeline(args: string[]): Promise<void> {
   console.log(`- output: ${manifest.outputDir}`);
   console.log(`- manifest: ${artifacts.manifest}`);
   console.log(`- final video target: ${manifest.finalVideoPath}`);
+}
+
+async function runVideoProfessionalReadiness(args: string[]): Promise<void> {
+  const prompt = resolveArg(args, "--prompt") ?? "Explain Hermes agent inside DansLab Company";
+  const lengthValue = resolveArg(args, "--length") ?? "900";
+  const videoLengthSeconds = Number.parseInt(lengthValue, 10);
+  const costMode = (resolveArg(args, "--cost-mode") ?? "local_first") as VideoPipelineCostMode;
+  const manifest = createStrictVideoPipelineManifest({
+    prompt,
+    videoLengthSeconds,
+    subtitlesEnabled: !args.includes("--no-subtitles"),
+    language: resolveArg(args, "--language") ?? "en",
+    voicePreset: resolveArg(args, "--voice") ?? "Brian human documentary narration",
+    costMode,
+    allowFalFallback: args.includes("--allow-fal"),
+    designSystem: resolveArg(args, "--design") ?? "Huashu x ElevenLabs cinematic dark cockpit"
+  });
+  const manifestArtifacts = writeStrictVideoPipelineArtifacts(rootDir, manifest);
+  const readinessPlan = createProfessionalReadinessPlan(manifest);
+  const evaluation = evaluateProfessionalReadiness(rootDir, manifest, readinessPlan);
+  const leveragePlan = createSystemLeveragePlan(manifest.runId);
+  const readinessArtifacts = writeProfessionalReadinessArtifacts(rootDir, manifest, readinessPlan, evaluation, leveragePlan);
+
+  console.log(`Professional readiness checked: ${manifest.runId}`);
+  console.log(`- queue decision: ${evaluation.queueDecision}`);
+  console.log(`- blockers: ${evaluation.blockers.length}`);
+  console.log(`- checked proofs: ${evaluation.checkedProofCount}`);
+  console.log(`- output: ${manifest.outputDir}`);
+  console.log(`- manifest: ${manifestArtifacts.manifest}`);
+  console.log(`- readiness: ${readinessArtifacts.paths.readinessEvaluation}`);
+  console.log(`- leverage plan: ${readinessArtifacts.paths.systemLeveragePlan}`);
 }
 
 function resolveArg(args: string[], flag: string): string | null {

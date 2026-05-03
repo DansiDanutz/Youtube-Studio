@@ -37,7 +37,8 @@
     "job:reject": "pnpm run build && node dist/apps/orchestrator/src/cli.js reject",
     "job:server": "pnpm run build && node dist/apps/orchestrator/src/cli.js server",
     "roadmap:status": "pnpm run build && node dist/apps/orchestrator/src/cli.js roadmap-status",
-    "video-pipeline": "pnpm run build && node dist/apps/orchestrator/src/cli.js video-pipeline"
+    "video-pipeline": "pnpm run build && node dist/apps/orchestrator/src/cli.js video-pipeline",
+    "video-professional-readiness": "pnpm run build && node dist/apps/orchestrator/src/cli.js video-professional-readiness"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

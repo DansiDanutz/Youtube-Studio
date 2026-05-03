@@ -48,3 +48,17 @@ export {
   type ProfessionalToolKey,
   type ProfessionalToolStatus
 } from "./professional-regeneration-plan.js";
+export {
+  createProfessionalReadinessPlan,
+  createSystemLeveragePlan,
+  evaluateProfessionalReadiness,
+  writeProfessionalReadinessArtifacts,
+  type ProfessionalQueueDecision,
+  type ProfessionalReadinessArtifactResult,
+  type ProfessionalReadinessCheckpoint,
+  type ProfessionalReadinessCheckpointKey,
+  type ProfessionalReadinessEvaluation,
+  type ProfessionalReadinessPlan,
+  type SystemLeverageLane,
+  type SystemLeveragePlan
+} from "./professional-readiness.js";
