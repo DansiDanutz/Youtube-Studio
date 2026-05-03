@@ -32,9 +32,12 @@
     "test": "pnpm run build && node --test dist/**/*.test.js",
     "env:check": "node scripts/validate-env.mjs",
     "job:smoke": "pnpm run build && node dist/apps/orchestrator/src/cli.js smoke",
-    "job:submit": "pnpm run build && node dist/apps/orchestrator/src/cli.js smoke",
+    "job:submit": "pnpm run build && node dist/apps/orchestrator/src/cli.js submit",
     "job:approve": "pnpm run build && node dist/apps/orchestrator/src/cli.js approve",
-    "job:reject": "pnpm run build && node dist/apps/orchestrator/src/cli.js reject"
+    "job:reject": "pnpm run build && node dist/apps/orchestrator/src/cli.js reject",
+    "job:server": "pnpm run build && node dist/apps/orchestrator/src/cli.js server",
+    "roadmap:status": "pnpm run build && node dist/apps/orchestrator/src/cli.js roadmap-status",
+    "video-pipeline": "pnpm run build && node dist/apps/orchestrator/src/cli.js video-pipeline"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

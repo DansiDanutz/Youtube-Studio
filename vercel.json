@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "public": true,
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/apps/dashboard/index.html" }
+  ],
+  "functions": {
+    "api/video-pipeline.js": {
+      "maxDuration": 60
+    }
+  }
+}

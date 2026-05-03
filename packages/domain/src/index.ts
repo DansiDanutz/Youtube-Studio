@@ -61,6 +61,15 @@ export interface ScriptLine {
   factIds: string[];
 }
 
+export interface ScriptScene {
+  id: string;
+  lineIndex: number;
+  section: ScriptLine["section"];
+  narration: string;
+  visualPrompt: string;
+  factIds: string[];
+}
+
 export interface ScriptDraft {
   title: string;
   narrationTargetSeconds: number;
@@ -73,6 +82,7 @@ export interface Script extends ScriptDraft {
     text: string;
     factIds: string[];
   }>;
+  scenes: ScriptScene[];
 }
 
 export interface ArtifactRecord {

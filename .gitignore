@@ -1,8 +1,14 @@
 dist
+/dist*/
 node_modules
+/node_modules*/
 artifacts/
+videos/
+.brv/
 .omx/
 memory/
 *.sqlite
 .env
 .env.*
+# macOS/iCloud duplicate working copies
+* 2.md

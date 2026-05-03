@@ -81,7 +81,7 @@ The first implementation targets one strong lane:
 
 ```text
 apps/
-  orchestrator/        CLI and future control-plane entrypoints
+  orchestrator/        CLI and HTTP control-plane entrypoints
 packages/
   domain/              core types, entities, and contracts
   pipeline/            generation and stage logic
@@ -126,10 +126,22 @@ pnpm run typecheck
 pnpm run test
 ```
 
+### Audit roadmap progress
+
+```bash
+pnpm run roadmap:status
+```
+
 ### Run the deterministic smoke flow
 
 ```bash
 pnpm run job:smoke
+```
+
+### Start the control-plane API
+
+```bash
+pnpm run job:server
 ```
 
 ## Project Status

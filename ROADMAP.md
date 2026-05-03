@@ -1,5 +1,7 @@
 # Roadmap
 
+Use `pnpm run roadmap:status` to see which items are actually complete, blocked, or still unstarted based on the current code and recorded run artifacts.
+
 ## Phase 1: Strong MVP Lane
 
 - Finalize the core run model

@@ -17,7 +17,11 @@ test("generateScript maps every line to fact ids", () => {
   const script = generateScript(brief);
 
   assert.equal(script.lines.length, 5);
+  assert.equal(script.scenes.length, script.lines.length);
   assert.ok(script.claims.every((claim) => claim.factIds.length > 0));
+  assert.equal(script.scenes[0]?.id, "scene-1");
+  assert.match(script.scenes[0]?.visualPrompt ?? "", /Opening visual/);
+  assert.deepEqual(script.scenes[0]?.factIds, script.lines[0]?.factIds);
   assert.match(renderScriptMarkdown(script), /Sources: fact-1/);
 });
 
@@ -87,4 +91,6 @@ test("generateScriptWithProvider accepts mocked provider output", async () => {
 
   assert.equal(script.narrationTargetSeconds, 52);
   assert.equal(script.claims[4]?.factIds[0], "fact-4");
+  assert.equal(script.scenes[4]?.section, "payoff");
+  assert.match(script.scenes[4]?.visualPrompt ?? "", /Closing visual/);
 });

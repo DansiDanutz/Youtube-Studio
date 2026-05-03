@@ -2,6 +2,7 @@ import {
   type Brief,
   type Script,
   type ScriptDraft,
+  type ScriptScene,
   DomainError
 } from "../../../../packages/domain/src/index.js";
 import { type StructuredOutputRequester } from "../openai.js";
@@ -129,23 +130,53 @@ function buildDeterministicScriptDraft(brief: Brief): ScriptDraft {
 }
 
 function buildScriptFromDraft(draft: ScriptDraft, brief: Brief): Script {
-  const claims = draft.lines.map((line, lineIndex) => ({
+  const normalizedLines = draft.lines.map((line) => ({
+    section: line.section,
+    text: line.text.trim(),
+    factIds: line.factIds.map((factId) => factId.trim())
+  }));
+
+  const claims = normalizedLines.map((line, lineIndex) => ({
     lineIndex,
     text: line.text,
-    factIds: line.factIds.map((factId) => factId.trim())
+    factIds: line.factIds
   }));
 
   const script: Script = {
     title: draft.title.trim(),
     narrationTargetSeconds: draft.narrationTargetSeconds,
-    lines: draft.lines.map((line) => ({
-      section: line.section,
-      text: line.text.trim(),
-      factIds: line.factIds.map((factId) => factId.trim())
-    })),
-    claims
+    lines: normalizedLines,
+    claims,
+    scenes: buildScenes(normalizedLines, brief)
   };
 
   verifyScriptGrounding(script, brief);
   return script;
+}
+
+function buildScenes(lines: ScriptDraft["lines"], brief: Brief): ScriptScene[] {
+  return lines.map((line, lineIndex) => ({
+    id: `scene-${lineIndex + 1}`,
+    lineIndex,
+    section: line.section,
+    narration: line.text,
+    visualPrompt: buildVisualPrompt(line.text, line.section, lineIndex, brief),
+    factIds: [...line.factIds]
+  }));
+}
+
+function buildVisualPrompt(
+  narration: string,
+  section: ScriptScene["section"],
+  lineIndex: number,
+  brief: Brief
+): string {
+  const basePrompt =
+    section === "hook"
+      ? `Opening visual for "${brief.topic}" in the ${brief.stylePreset} style.`
+      : section === "payoff"
+        ? `Closing visual reinforcing "${brief.desiredTakeaway}" in the ${brief.stylePreset} style.`
+        : `Visual beat ${lineIndex} for "${brief.topic}" in the ${brief.stylePreset} style.`;
+
+  return `${basePrompt} Narration beat: ${narration}`;
 }
