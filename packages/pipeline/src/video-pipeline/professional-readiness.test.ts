@@ -8,7 +8,8 @@ import {
   evaluateProfessionalReadiness,
   writeProfessionalReadinessArtifacts,
   createStrictVideoPipelineManifest,
-  createSystemLeveragePlan
+  createSystemLeveragePlan,
+  formatMemoFleetHealthDigest
 } from "./index.js";
 
 const strictInput = {
@@ -145,4 +146,32 @@ test("professional readiness artifacts include a full-system leverage plan", () 
   assert.ok(written.lanes.some((lane) => lane.id === "david-openclaw-executor"));
   assert.ok(written.lanes.some((lane) => lane.id === "memo-reporting-digest"));
   assert.ok(written.lanes.some((lane) => lane.id === "learning-sop-capture"));
+});
+
+test("system leverage plan captures prioritized open-source studio upgrades from research", () => {
+  const leverage = createSystemLeveragePlan("run-open-source-polish", new Date("2026-05-04T00:02:00.000Z")) as {
+    openSourceEnhancements?: Array<{ id: string; name: string; priority: string; integrationLane: string }>;
+  };
+
+  assert.ok(Array.isArray(leverage.openSourceEnhancements));
+  assert.ok(leverage.openSourceEnhancements.some((item) => item.id === "remotion-captions-whispercpp" && item.priority === "P0"));
+  assert.ok(leverage.openSourceEnhancements.some((item) => item.id === "kokoro-local-tts" && item.integrationLane === "voice"));
+  assert.ok(leverage.openSourceEnhancements.some((item) => item.id === "whisperx-or-stable-ts-alignment"));
+  assert.ok(leverage.openSourceEnhancements.some((item) => item.id === "comfyui-video-workflow-registry"));
+});
+
+test("Memo fleet health digest formats nested Paperclip objects as readable scalars", () => {
+  const digest = formatMemoFleetHealthDigest({
+    generatedAtUtc: "2026-05-03 03:00 UTC",
+    nervixStatus: "OK",
+    paperclip: {
+      agents: { total: 6, healthy: 5, degraded: 1 },
+      tasks: { open: 14, inProgress: 4, blocked: 1, doneToday: 9 }
+    }
+  });
+
+  assert.match(digest, /Fleet Health Digest/);
+  assert.match(digest, /NERVIX: OK/);
+  assert.match(digest, /Paperclip: Agents=6 total, 5 healthy, 1 degraded \| Tasks=14 open, 4 in progress, 1 blocked, 9 done today/);
+  assert.doesNotMatch(digest, /\[object Object\]/);
 });

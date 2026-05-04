@@ -64,6 +64,17 @@ export interface SystemLeveragePlan {
   operatingModel: string;
   executionWaves: string[];
   lanes: SystemLeverageLane[];
+  openSourceEnhancements: SystemOpenSourceEnhancement[];
+}
+
+export interface SystemOpenSourceEnhancement {
+  id: string;
+  name: string;
+  source: string;
+  priority: "P0" | "P1" | "P2";
+  integrationLane: string;
+  whyItMatters: string;
+  nextProof: string;
 }
 
 export interface ProfessionalReadinessArtifactResult {
@@ -72,6 +83,24 @@ export interface ProfessionalReadinessArtifactResult {
     readinessPlan: string;
     readinessEvaluation: string;
     systemLeveragePlan: string;
+  };
+}
+
+export interface MemoFleetHealthDigestInput {
+  generatedAtUtc: string;
+  nervixStatus: string;
+  paperclip: {
+    agents: {
+      total: number;
+      healthy: number;
+      degraded: number;
+    };
+    tasks: {
+      open: number;
+      inProgress: number;
+      blocked: number;
+      doneToday: number;
+    };
   };
 }
 
@@ -271,6 +300,44 @@ export function createSystemLeveragePlan(runId: string, now = new Date()): Syste
       "Wave 3: full professional render only after queueable readiness.",
       "Wave 4: Paperclip closure, Memo digest, reusable SOP/skill capture."
     ],
+    openSourceEnhancements: [
+      {
+        id: "remotion-captions-whispercpp",
+        name: "Remotion captions + whisper.cpp caption workflow",
+        source: "https://github.com/remotion-dev/remotion + https://github.com/remotion-dev/template-tiktok + https://github.com/ggerganov/whisper.cpp",
+        priority: "P0",
+        integrationLane: "captions-motion",
+        whyItMatters: "Gives the studio typed caption data, local token-level subtitle generation, and animated caption rendering without a paid transcription dependency.",
+        nextProof: "Add a local caption smoke that generates SRT/JSON from the voice proof and renders burned-in captions on a short FFmpeg/Remotion clip."
+      },
+      {
+        id: "kokoro-local-tts",
+        name: "Kokoro open-weight local TTS",
+        source: "https://github.com/hexgrad/kokoro + https://github.com/nazdridoy/kokoro-tts",
+        priority: "P0",
+        integrationLane: "voice",
+        whyItMatters: "Replaces weak macOS say fallback with a stronger local narrator route while preserving $0 cost and offline-safe execution.",
+        nextProof: "Install in an isolated venv, generate a 20-30 second narrator sample, ffprobe it, and compare against the current Reed proof before promoting it."
+      },
+      {
+        id: "whisperx-or-stable-ts-alignment",
+        name: "WhisperX or stable-ts forced alignment",
+        source: "https://github.com/m-bain/whisperX + https://github.com/jianfch/stable-ts",
+        priority: "P1",
+        integrationLane: "audio-subtitle-qa",
+        whyItMatters: "Improves word-level timing, subtitle readability, and audio/subtitle QA for long professional videos.",
+        nextProof: "Run CPU-safe alignment on a short voice sample and write qa/subtitle-alignment-proof.json with drift metrics."
+      },
+      {
+        id: "comfyui-video-workflow-registry",
+        name: "Curated ComfyUI video workflow registry",
+        source: "https://github.com/comfyanonymous/ComfyUI_examples + https://github.com/neverbiasu/Awesome-ComfyUI-Video + https://github.com/Tech-Multiverse/4k-ai-video-workflows",
+        priority: "P1",
+        integrationLane: "visual-assets",
+        whyItMatters: "Turns ComfyUI from a one-off smoke test into a reusable visual production lane for image-to-video, upscaling, and frame interpolation.",
+        nextProof: "Curate allowed workflow manifests, pin required nodes/models, and run one low-cost local workflow smoke into runtime/comfyui-video-workflow-proof.json."
+      }
+    ],
     lanes: [
       {
         id: "paperclip-source-of-truth",
@@ -346,4 +413,17 @@ export function writeProfessionalReadinessArtifacts(
 function writeJson(path: string, value: unknown): void {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify(sanitizeForManifest(value), null, 2)}\n`, "utf8");
+}
+
+export function formatMemoFleetHealthDigest(input: MemoFleetHealthDigestInput): string {
+  assertNoSecrets(input);
+  const agents = input.paperclip.agents;
+  const tasks = input.paperclip.tasks;
+  return [
+    "-- Fleet Health Digest --",
+    input.generatedAtUtc,
+    "",
+    `NERVIX: ${input.nervixStatus}`,
+    `Paperclip: Agents=${agents.total} total, ${agents.healthy} healthy, ${agents.degraded} degraded | Tasks=${tasks.open} open, ${tasks.inProgress} in progress, ${tasks.blocked} blocked, ${tasks.doneToday} done today`
+  ].join("\n");
 }
