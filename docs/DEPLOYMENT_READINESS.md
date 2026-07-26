@@ -3,6 +3,20 @@
 This repo can advance milestone gates with local smoke coverage, but a real
 end-to-end run still depends on five external surfaces being wired.
 
+## Deployment provenance
+
+As of 2026-07-27, GitHub reports no deployment records for this repository and
+exact `main` commit `213f0bc88253688c9a45b42afbce6dbf6dbb6563` has no provider
+deployment status attached to it. The repository also contains no Vercel
+project metadata or deployment configuration. Any existing URL therefore
+cannot be attributed to exact `main` from repository evidence and must not be
+reported as a verified deployment until the provider records its commit SHA.
+
+Before exposing the FastAPI service, configure `YUTE_API_TOKEN` and
+`TELEGRAM_WEBHOOK_SECRET`. Register the latter as Telegram's `secret_token`
+when calling `setWebhook`; callers of operational API routes must send
+`Authorization: Bearer <YUTE_API_TOKEN>`.
+
 ## Already green
 
 - MoltBot control-plane schema seeded (`yute_milestones`, `yute_approvals`, `yute_run_meta`)
