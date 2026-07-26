@@ -15,16 +15,16 @@ from __future__ import annotations
 
 import logging
 import os
+import secrets
 from typing import Any
 from uuid import UUID, uuid4
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
 
 from src.manifest import PipelineState, RunManifest, Tier
 from src.orchestrator import approval_bridge, dispatcher
 from src.orchestrator.db import (
-    T_APPROVALS,
     T_MILESTONES,
     T_PROJECTS,
     T_RUN_META,
@@ -35,6 +35,25 @@ from src.orchestrator.roadmap import tick as gsd_tick
 log = logging.getLogger(__name__)
 
 app = FastAPI(title="YuteStudio", version="0.1.0")
+
+
+def require_api_token(req: Request) -> None:
+    expected = os.environ.get("YUTE_API_TOKEN", "")
+    if not expected:
+        raise HTTPException(503, "API authentication is not configured")
+
+    scheme, _, provided = req.headers.get("authorization", "").partition(" ")
+    if scheme.lower() != "bearer" or not secrets.compare_digest(provided, expected):
+        raise HTTPException(401, "invalid bearer token")
+
+
+def require_telegram_webhook_secret(req: Request) -> None:
+    expected = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
+    provided = req.headers.get("x-telegram-bot-api-secret-token", "")
+    if not expected:
+        raise HTTPException(503, "Telegram webhook authentication is not configured")
+    if not secrets.compare_digest(provided, expected):
+        raise HTTPException(401, "invalid Telegram webhook secret")
 
 
 # --------------- request/response models ---------------
@@ -67,11 +86,12 @@ def health() -> dict[str, Any]:
         client = get_client()
         client.table(T_MILESTONES).select("id").limit(1).execute()
         return {"ok": True, "db": "up"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "db": "down", "error": str(exc)}
+    except Exception as exc:
+        log.warning("Health database probe failed: %s", type(exc).__name__)
+        return {"ok": False, "db": "down"}
 
 
-@app.post("/runs", status_code=201)
+@app.post("/runs", status_code=201, dependencies=[Depends(require_api_token)])
 def create_run(body: CreateRun) -> dict[str, Any]:
     project_id = uuid4()
     budget = body.budget_cents or _default_budget_for(body.tier)
@@ -99,7 +119,7 @@ def create_run(body: CreateRun) -> dict[str, Any]:
     return {"project_id": str(project_id), "tier": body.tier, "budget_cents": budget}
 
 
-@app.get("/runs/{project_id}")
+@app.get("/runs/{project_id}", dependencies=[Depends(require_api_token)])
 def get_run(project_id: UUID) -> dict[str, Any]:
     client = get_client()
     proj = (
@@ -121,7 +141,11 @@ def get_run(project_id: UUID) -> dict[str, Any]:
     return {"project": proj.data, "meta": meta.data}
 
 
-@app.post("/runs/{project_id}/advance", response_model=AdvanceResult)
+@app.post(
+    "/runs/{project_id}/advance",
+    response_model=AdvanceResult,
+    dependencies=[Depends(require_api_token)],
+)
 def advance_run(project_id: UUID) -> AdvanceResult:
     manifest = _load_manifest(project_id)
     before = PipelineState(manifest.pipeline_state)
@@ -131,13 +155,13 @@ def advance_run(project_id: UUID) -> AdvanceResult:
     return AdvanceResult(project_id=project_id, pipeline_state=after, changed=before != after)
 
 
-@app.post("/runs/{project_id}/cancel")
+@app.post("/runs/{project_id}/cancel", dependencies=[Depends(require_api_token)])
 def cancel_run(project_id: UUID) -> dict[str, Any]:
     _persist_meta_state(project_id, PipelineState.CANCELLED)
     return {"ok": True, "project_id": str(project_id), "state": PipelineState.CANCELLED}
 
 
-@app.post("/approvals/{approval_id}/decide")
+@app.post("/approvals/{approval_id}/decide", dependencies=[Depends(require_api_token)])
 def decide(approval_id: int, body: Decision) -> dict[str, Any]:
     if body.decision not in ("approved", "rejected"):
         raise HTTPException(400, "decision must be approved or rejected")
@@ -147,7 +171,10 @@ def decide(approval_id: int, body: Decision) -> dict[str, Any]:
     return {"ok": True, "approval_id": approval_id, "decision": body.decision}
 
 
-@app.post("/telegram/webhook")
+@app.post(
+    "/telegram/webhook",
+    dependencies=[Depends(require_telegram_webhook_secret)],
+)
 async def telegram_webhook(req: Request) -> dict[str, Any]:
     """Parses /approve <id> and /reject <id> <reason>."""
     update = await req.json()
@@ -175,14 +202,14 @@ async def telegram_webhook(req: Request) -> dict[str, Any]:
     return {"ok": True, "approval_id": approval_id, "decision": cmd + "d"}
 
 
-@app.get("/milestones")
+@app.get("/milestones", dependencies=[Depends(require_api_token)])
 def milestones() -> dict[str, Any]:
     client = get_client()
     resp = client.table(T_MILESTONES).select("*").order("id").execute()
     return {"milestones": resp.data}
 
 
-@app.post("/gsd/tick")
+@app.post("/gsd/tick", dependencies=[Depends(require_api_token)])
 def gsd_tick_endpoint() -> dict[str, Any]:
     """Called by the scheduled-task executor. Idempotent."""
     return gsd_tick()
