@@ -84,16 +84,34 @@ def test_telegram_webhook_rejects_forged_approval(monkeypatch) -> None:
 def test_telegram_webhook_accepts_configured_secret(monkeypatch) -> None:
     decisions: list[tuple] = []
     monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", "telegram-secret")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
     monkeypatch.setattr(main.approval_bridge, "decide", lambda *args, **kwargs: decisions.append((args, kwargs)))
 
     response = client.post(
         "/telegram/webhook",
         headers={"X-Telegram-Bot-Api-Secret-Token": "telegram-secret"},
-        json={"message": {"text": "/approve 42", "from": {"username": "operator"}}},
+        json={"message": {"chat": {"id": 12345}, "text": "/approve 42", "from": {"username": "operator"}}},
     )
 
     assert response.status_code == 200
     assert decisions == [((42,), {"decision": "approved", "approver": "operator", "reason": ""})]
+
+
+def test_telegram_webhook_rejects_other_chat_with_valid_transport_secret(monkeypatch) -> None:
+    decisions: list[tuple] = []
+    monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", "telegram-secret")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
+    monkeypatch.setattr(main.approval_bridge, "decide", lambda *args, **kwargs: decisions.append((args, kwargs)))
+
+    response = client.post(
+        "/telegram/webhook",
+        headers={"X-Telegram-Bot-Api-Secret-Token": "telegram-secret"},
+        json={"message": {"chat": {"id": 99999}, "text": "/approve 42", "from": {"username": "attacker"}}},
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Telegram chat is not authorized"}
+    assert decisions == []
 
 
 def test_health_does_not_expose_provider_exception(monkeypatch) -> None:

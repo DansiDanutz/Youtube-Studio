@@ -178,8 +178,16 @@ def decide(approval_id: int, body: Decision) -> dict[str, Any]:
 async def telegram_webhook(req: Request) -> dict[str, Any]:
     """Parses /approve <id> and /reject <id> <reason>."""
     update = await req.json()
-    msg = (update.get("message") or {}).get("text", "")
-    user = ((update.get("message") or {}).get("from") or {}).get("username") or "unknown"
+    message = update.get("message") or {}
+    expected_chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not expected_chat_id:
+        raise HTTPException(503, "Telegram chat authorization is not configured")
+    provided_chat_id = str((message.get("chat") or {}).get("id", ""))
+    if not secrets.compare_digest(provided_chat_id, expected_chat_id):
+        raise HTTPException(403, "Telegram chat is not authorized")
+
+    msg = message.get("text", "")
+    user = (message.get("from") or {}).get("username") or "unknown"
     parts = msg.strip().split(maxsplit=2)
     if len(parts) < 2:
         return {"ok": False, "error": "need /approve|/reject <id>"}
