@@ -179,7 +179,9 @@ async def telegram_webhook(req: Request) -> dict[str, Any]:
     """Parses /approve <id> and /reject <id> <reason>."""
     update = await req.json()
     message = update.get("message") or {}
-    expected_chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    expected_chat_id = os.environ.get("TELEGRAM_CHAT_ID") or os.environ.get(
+        "TELEGRAM_DAN_CHAT_ID", ""
+    )
     if not expected_chat_id:
         raise HTTPException(503, "Telegram chat authorization is not configured")
     provided_chat_id = str((message.get("chat") or {}).get("id", ""))

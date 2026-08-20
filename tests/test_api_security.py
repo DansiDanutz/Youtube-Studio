@@ -114,6 +114,23 @@ def test_telegram_webhook_rejects_other_chat_with_valid_transport_secret(monkeyp
     assert decisions == []
 
 
+def test_telegram_webhook_accepts_documented_legacy_chat_id(monkeypatch) -> None:
+    decisions: list[tuple] = []
+    monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", "telegram-secret")
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    monkeypatch.setenv("TELEGRAM_DAN_CHAT_ID", "12345")
+    monkeypatch.setattr(main.approval_bridge, "decide", lambda *args, **kwargs: decisions.append((args, kwargs)))
+
+    response = client.post(
+        "/telegram/webhook",
+        headers={"X-Telegram-Bot-Api-Secret-Token": "telegram-secret"},
+        json={"message": {"chat": {"id": 12345}, "text": "/reject 42 legacy", "from": {"username": "operator"}}},
+    )
+
+    assert response.status_code == 200
+    assert decisions == [((42,), {"decision": "rejected", "approver": "operator", "reason": "legacy"})]
+
+
 def test_health_does_not_expose_provider_exception(monkeypatch) -> None:
     def fail_with_internal_detail():
         raise RuntimeError("database-host.internal:5432 credential rejected")
