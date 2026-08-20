@@ -188,6 +188,20 @@ async def telegram_webhook(req: Request) -> dict[str, Any]:
     if not secrets.compare_digest(provided_chat_id, expected_chat_id):
         raise HTTPException(403, "Telegram chat is not authorized")
 
+    approver_ids = {
+        value.strip()
+        for value in os.environ.get("TELEGRAM_APPROVER_IDS", "").split(",")
+        if value.strip()
+    }
+    if not approver_ids:
+        raise HTTPException(503, "Telegram approver authorization is not configured")
+    provided_approver_id = str((message.get("from") or {}).get("id", ""))
+    if not any(
+        secrets.compare_digest(provided_approver_id, approver_id)
+        for approver_id in approver_ids
+    ):
+        raise HTTPException(403, "Telegram sender is not authorized")
+
     msg = message.get("text", "")
     user = (message.get("from") or {}).get("username") or "unknown"
     parts = msg.strip().split(maxsplit=2)
